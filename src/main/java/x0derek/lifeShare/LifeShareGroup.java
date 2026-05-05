@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class LifeShareGroup {
 
-    private final UUID owner;
+    private UUID owner;
     private final Set<UUID> members = new HashSet<>();
     private boolean shareHealth = true;
     private boolean shareHunger = true;
@@ -19,6 +19,12 @@ public class LifeShareGroup {
 
     public UUID getOwner() {
         return owner;
+    }
+
+    public void setOwner(UUID owner) {
+        this.members.remove(this.owner);
+        this.owner = owner;
+        this.members.add(owner);
     }
 
     public Set<UUID> getMembers() {

@@ -1,4 +1,4 @@
-package x0derek.lifeShare.subcommands;
+package x0derek.lifeShare;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -6,9 +6,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import x0derek.lifeShare.LifeShare;
-import x0derek.lifeShare.LifeShareGroup;
-import x0derek.lifeShare.Subcommand;
 
 public class Options implements Subcommand {
 

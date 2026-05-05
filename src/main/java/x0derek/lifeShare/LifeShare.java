@@ -1,6 +1,8 @@
 package x0derek.lifeShare;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class LifeShare extends JavaPlugin {
@@ -15,6 +17,26 @@ public class LifeShare extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
+
+        getConfig().set("owner-can-change-options", getConfig().getBoolean("owner-can-change-options", true));
+        saveConfig();
+
+        File dataFile = new File(getDataFolder(), "data.yml");
+        if (dataFile.exists()) {
+            try {
+                String content = new String(java.nio.file.Files.readAllBytes(dataFile.toPath()));
+                if (content.contains("default")) {
+                    File backup = new File(getDataFolder(), "data.yml.corrupted_" + System.currentTimeMillis());
+                    dataFile.renameTo(backup);
+                    getLogger().warning("Uszkodzony data.yml został przeniesiony do: " + backup.getName());
+                    dataFile.createNewFile();
+                }
+            } catch (IOException e) {
+                getLogger().warning("Nie można sprawdzić data.yml: " + e.getMessage());
+            }
+        }
+
         getCommand("lifeshare").setExecutor(new LifeShareCommand(this));
         getCommand("lifeshare").setTabCompleter(new LifeShareCommand(this));
         getServer().getPluginManager().registerEvents(new LifeShareListener(this), this);

@@ -2,7 +2,6 @@ package x0derek.lifeShare;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import java.util.Set;
 import java.util.UUID;
 
 public class SyncManager {
@@ -15,78 +14,69 @@ public class SyncManager {
 
     public void syncGroupHealth(UUID sourcePlayerId, double newHealth) {
         LifeShareGroup group = plugin.getGroup(sourcePlayerId);
-        if (group == null) return;
-        if (!group.isShareHealth()) return;
+        if (group == null || !group.isShareHealth()) return;
 
         for (UUID memberId : group.getMembers()) {
-            if (memberId.equals(sourcePlayerId)) continue;
-            if (plugin.getSyncing().contains(memberId)) continue;
+            if (memberId.equals(sourcePlayerId) || plugin.getSyncing().contains(memberId)) continue;
 
             Player member = Bukkit.getPlayer(memberId);
-            if (member == null) continue;
+            if (member == null || !member.isOnline()) continue;
 
             plugin.getSyncing().add(memberId);
-
-            if (newHealth <= 0) {
-                member.setHealth(0);
-            } else {
-                if (newHealth > member.getMaxHealth()) {
-                    member.setHealth(member.getMaxHealth());
-                } else {
-                    member.setHealth(newHealth);
-                }
+            try {
+                double healthToSet = Math.max(0, Math.min(newHealth, member.getMaxHealth()));
+                member.setHealth(healthToSet);
+            } finally {
+                plugin.getSyncing().remove(memberId);
             }
-
-            plugin.getSyncing().remove(memberId);
         }
     }
 
     public void syncGroupFood(UUID sourcePlayerId, int foodLevel) {
         LifeShareGroup group = plugin.getGroup(sourcePlayerId);
-        if (group == null) return;
-        if (!group.isShareHunger()) return;
+        if (group == null || !group.isShareHunger()) return;
 
         for (UUID memberId : group.getMembers()) {
-            if (memberId.equals(sourcePlayerId)) continue;
-            if (plugin.getSyncing().contains(memberId)) continue;
+            if (memberId.equals(sourcePlayerId) || plugin.getSyncing().contains(memberId)) continue;
 
             Player member = Bukkit.getPlayer(memberId);
-            if (member == null) continue;
+            if (member == null || !member.isOnline()) continue;
 
             plugin.getSyncing().add(memberId);
-            member.setFoodLevel(foodLevel);
-            member.setSaturation(20);
-            plugin.getSyncing().remove(memberId);
+            try {
+                member.setFoodLevel(foodLevel);
+            } finally {
+                plugin.getSyncing().remove(memberId);
+            }
         }
     }
 
     public void syncGroupInventory(UUID sourcePlayerId) {
         LifeShareGroup group = plugin.getGroup(sourcePlayerId);
-        if (group == null) return;
-        if (!group.isShareInventory()) return;
+        if (group == null || !group.isShareInventory()) return;
 
         Player source = Bukkit.getPlayer(sourcePlayerId);
-        if (source == null) return;
+        if (source == null || !source.isOnline()) return;
 
         for (UUID memberId : group.getMembers()) {
-            if (memberId.equals(sourcePlayerId)) continue;
-            if (plugin.getSyncing().contains(memberId)) continue;
+            if (memberId.equals(sourcePlayerId) || plugin.getSyncing().contains(memberId)) continue;
 
             Player member = Bukkit.getPlayer(memberId);
-            if (member == null) continue;
+            if (member == null || !member.isOnline()) continue;
 
             plugin.getSyncing().add(memberId);
-            member.getInventory().setContents(source.getInventory().getContents());
-            member.getInventory().setArmorContents(source.getInventory().getArmorContents());
-            member.getInventory().setExtraContents(source.getInventory().getExtraContents());
-            plugin.getSyncing().remove(memberId);
+            try {
+                member.getInventory().setContents(source.getInventory().getContents());
+                member.getInventory().setArmorContents(source.getInventory().getArmorContents());
+            } finally {
+                plugin.getSyncing().remove(memberId);
+            }
         }
     }
 
     public void syncAllGroupData(UUID playerId) {
         Player player = Bukkit.getPlayer(playerId);
-        if (player == null) return;
-        if (!plugin.isInGroup(playerId)) return;
+        if (player == null || !plugin.isInGroup(playerId)) return;
 
         syncGroupHealth(playerId, player.getHealth());
         syncGroupFood(playerId, player.getFoodLevel());

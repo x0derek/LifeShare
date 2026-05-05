@@ -55,7 +55,7 @@ public class DataManager {
             try {
                 if (ownerStr.equals("default")) {
                     plugin.getLogger().warning("Pomijanie sekcji 'default' - usuwanie...");
-                    dataConfig.set("groups.default", null);
+                    groupsSection.set(ownerStr, null);
                     continue;
                 }
 
