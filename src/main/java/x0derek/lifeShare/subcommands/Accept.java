@@ -58,6 +58,9 @@ public class Accept implements Subcommand {
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
         inviter.playSound(inviter.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
 
+        player.setHealth(inviter.getHealth());
+        player.getInventory().setContents(inviter.getInventory().getContents());
+
         inviter.sendMessage(
                 Component.text(player.getName(), NamedTextColor.YELLOW)
                         .append(Component.text(" accepted your LifeShare invitation!", NamedTextColor.GREEN))
