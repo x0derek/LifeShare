@@ -1,0 +1,9 @@
+name: LifeShare
+version: 1.0
+main: x0derek.lifeShare.LifeShare
+api-version: 1.21
+commands:
+  lifeshare:
+    description: Main LifeShare command
+    usage: /<command> <invite|accept|deny>
+    aliases: [ls]
