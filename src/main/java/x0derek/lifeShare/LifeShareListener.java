@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 
@@ -24,7 +25,7 @@ public class LifeShareListener implements org.bukkit.event.Listener {
         if (!plugin.isInGroup(player.getUniqueId())) {
             return;
         }
-        var getDamage = event.getDamage();
+        var getDmg = event.getDamage();
         LifeShareGroup group = plugin.getGroup(player.getUniqueId());
         group.getMembers().forEach(member -> {
             Player playerToDamage = Bukkit.getPlayer(member);
@@ -38,7 +39,7 @@ public class LifeShareListener implements org.bukkit.event.Listener {
                 return;
             }
             plugin.getSyncing().add(playerToDamage.getUniqueId());
-            playerToDamage.damage(event.getDamage());
+            playerToDamage.damage(getDmg);
             plugin.getSyncing().remove(playerToDamage.getUniqueId());
         });
     }
@@ -64,6 +65,33 @@ public class LifeShareListener implements org.bukkit.event.Listener {
             plugin.getSyncing().add(playertoInv.getUniqueId());
             playertoInv.getInventory().setContents(player.getInventory().getContents());
             plugin.getSyncing().remove(playertoInv.getUniqueId());
+        });
+    }
+
+    @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        if (!plugin.isInGroup(player.getUniqueId())) {
+            return;
+        }
+        var getFoodLvl = event.getFoodLevel();
+        LifeShareGroup group = plugin.getGroup(player.getUniqueId());
+        group.getMembers().forEach(member -> {
+            Player playerToFoodLvl = Bukkit.getPlayer(member);
+            if (player.getUniqueId().equals(member)) {
+                return;
+            }
+            if (plugin.getSyncing().contains(player.getUniqueId())) {
+                return;
+            }
+            if (playerToFoodLvl == null) {
+                return;
+            }
+            plugin.getSyncing().add(playerToFoodLvl.getUniqueId());
+            playerToFoodLvl.setFoodLevel(getFoodLvl);
+            plugin.getSyncing().remove(playerToFoodLvl.getUniqueId());
         });
     }
 }

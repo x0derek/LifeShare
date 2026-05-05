@@ -60,6 +60,7 @@ public class Accept implements Subcommand {
 
         player.setHealth(inviter.getHealth());
         player.getInventory().setContents(inviter.getInventory().getContents());
+        player.setFoodLevel(inviter.getFoodLevel());
 
         inviter.sendMessage(
                 Component.text(player.getName(), NamedTextColor.YELLOW)
