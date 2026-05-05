@@ -1,6 +1,8 @@
 name: LifeShare
-version: 1.0
+version: 1.1
 main: x0derek.lifeShare.LifeShare
+authors:
+  - x0derek
 api-version: 1.21
 commands:
   lifeshare:

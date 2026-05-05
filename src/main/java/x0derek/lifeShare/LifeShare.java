@@ -17,10 +17,13 @@ public class LifeShare extends JavaPlugin {
         getCommand("lifeshare").setExecutor(new LifeShareCommand(this));
         getCommand("lifeshare").setTabCompleter(new LifeShareCommand(this));
         getServer().getPluginManager().registerEvents(new LifeShareListener(this), this);
+        getLogger().info("\u001B[32mLifeShare by x0derek\u001B[0m");
+        getLogger().info("LifeShare enabled!");
     }
 
     @Override
     public void onDisable() {
+        getLogger().info("\u001B[32mLifeShare by x0derek\u001B[0m");
         getLogger().info("LifeShare disabled!");
     }
 
