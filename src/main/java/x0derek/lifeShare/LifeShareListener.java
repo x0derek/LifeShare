@@ -1,13 +1,18 @@
 package x0derek.lifeShare;
 
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import java.util.UUID;
 
 public class LifeShareListener implements org.bukkit.event.Listener {
 
@@ -18,80 +23,159 @@ public class LifeShareListener implements org.bukkit.event.Listener {
     }
 
     @EventHandler
-    public void onDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
+
+        if (plugin.isInGroup(playerId)) {
+            LifeShareGroup group = plugin.getGroup(playerId);
+            UUID ownerId = group.getOwner();
+            Player owner = Bukkit.getPlayer(ownerId);
+
+            if (owner != null && owner.isOnline()) {
+                if (!owner.getUniqueId().equals(playerId)) {
+                    plugin.getSyncing().add(playerId);
+
+                    player.setHealth(owner.getHealth());
+                    player.getInventory().setContents(owner.getInventory().getContents());
+                    player.getInventory().setArmorContents(owner.getInventory().getArmorContents());
+                    player.setFoodLevel(owner.getFoodLevel());
+                    player.setSaturation(20);
+
+                    plugin.getSyncing().remove(playerId);
+
+                    player.sendMessage(Component.text("Your data has been synchronized with the group!", NamedTextColor.GREEN));
+                } else {
+                    Player anyMember = null;
+                    for (UUID memberId : group.getMembers()) {
+                        if (!memberId.equals(playerId)) {
+                            Player member = Bukkit.getPlayer(memberId);
+                            if (member != null && member.isOnline()) {
+                                anyMember = member;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (anyMember != null) {
+                        plugin.getSyncing().add(playerId);
+
+                        player.setHealth(anyMember.getHealth());
+                        player.getInventory().setContents(anyMember.getInventory().getContents());
+                        player.getInventory().setArmorContents(anyMember.getInventory().getArmorContents());
+                        player.setFoodLevel(anyMember.getFoodLevel());
+                        player.setSaturation(20);
+
+                        plugin.getSyncing().remove(playerId);
+
+                        player.sendMessage(Component.text("You are the owner, but your data has been synchronized with the group!", NamedTextColor.GREEN));
+                    }
+                }
+            }
         }
-        if (!plugin.isInGroup(player.getUniqueId())) {
-            return;
-        }
-        var getDmg = event.getDamage();
-        LifeShareGroup group = plugin.getGroup(player.getUniqueId());
-        group.getMembers().forEach(member -> {
-            Player playerToDamage = Bukkit.getPlayer(member);
-            if (player.getUniqueId().equals(member)) {
-                return;
-            }
-            if (plugin.getSyncing().contains(player.getUniqueId())) {
-                return;
-            }
-            if (playerToDamage == null) {
-                return;
-            }
-            plugin.getSyncing().add(playerToDamage.getUniqueId());
-            playerToDamage.damage(getDmg);
-            plugin.getSyncing().remove(playerToDamage.getUniqueId());
-        });
     }
 
     @EventHandler
-    public void onInventoryClick(PlayerInventorySlotChangeEvent event) {
-        Player player = event.getPlayer();
-        if (!plugin.isInGroup(player.getUniqueId())) {
-            return;
-        }
-        LifeShareGroup group = plugin.getGroup(player.getUniqueId());
-        group.getMembers().forEach(member -> {
-            Player playertoInv = Bukkit.getPlayer(member);
-            if(player.getUniqueId().equals(member)) {
-                return;
-            }
-            if (plugin.getSyncing().contains(player.getUniqueId())) {
-                return;
-            }
-            if (playertoInv == null) {
-                return;
-            }
-            plugin.getSyncing().add(playertoInv.getUniqueId());
-            playertoInv.getInventory().setContents(player.getInventory().getContents());
-            plugin.getSyncing().remove(playertoInv.getUniqueId());
-        });
+    public void onDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!plugin.isInGroup(player.getUniqueId())) return;
+        if (plugin.getSyncing().contains(player.getUniqueId())) return;
+
+        double newHealth = player.getHealth() - event.getFinalDamage();
+        if (newHealth < 0) newHealth = 0;
+
+        plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), newHealth, true);
+    }
+
+    @EventHandler
+    public void onRegainHealth(EntityRegainHealthEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!plugin.isInGroup(player.getUniqueId())) return;
+        if (plugin.getSyncing().contains(player.getUniqueId())) return;
+
+        double newHealth = player.getHealth() + event.getAmount();
+        if (newHealth > player.getMaxHealth()) newHealth = player.getMaxHealth();
+
+        plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), newHealth, true);
     }
 
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
-        }
-        if (!plugin.isInGroup(player.getUniqueId())) {
-            return;
-        }
-        var getFoodLvl = event.getFoodLevel();
-        LifeShareGroup group = plugin.getGroup(player.getUniqueId());
-        group.getMembers().forEach(member -> {
-            Player playerToFoodLvl = Bukkit.getPlayer(member);
-            if (player.getUniqueId().equals(member)) {
-                return;
-            }
-            if (plugin.getSyncing().contains(player.getUniqueId())) {
-                return;
-            }
-            if (playerToFoodLvl == null) {
-                return;
-            }
-            plugin.getSyncing().add(playerToFoodLvl.getUniqueId());
-            playerToFoodLvl.setFoodLevel(getFoodLvl);
-            plugin.getSyncing().remove(playerToFoodLvl.getUniqueId());
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!plugin.isInGroup(player.getUniqueId())) return;
+        if (plugin.getSyncing().contains(player.getUniqueId())) return;
+
+        int newFoodLevel = event.getFoodLevel();
+        plugin.getSyncManager().syncGroupFood(player.getUniqueId(), newFoodLevel);
+    }
+
+    @EventHandler
+    public void onInventoryChange(PlayerInventorySlotChangeEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.isInGroup(player.getUniqueId())) return;
+        if (plugin.getSyncing().contains(player.getUniqueId())) return;
+
+        plugin.getSyncManager().syncGroupInventory(player.getUniqueId());
+    }
+
+    @EventHandler
+    public void onItemConsume(PlayerItemConsumeEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.isInGroup(player.getUniqueId())) return;
+        if (plugin.getSyncing().contains(player.getUniqueId())) return;
+
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), player.getHealth(), false);
+            plugin.getSyncManager().syncGroupFood(player.getUniqueId(), player.getFoodLevel());
+            plugin.getSyncManager().syncGroupInventory(player.getUniqueId());
         });
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
+
+        plugin.getInvitations().entrySet().removeIf(entry -> entry.getValue().equals(playerId));
+        plugin.getInvitations().remove(playerId);
+        plugin.getInviteCooldown().remove(playerId);
+
+        if (plugin.isInGroup(playerId)) {
+            LifeShareGroup group = plugin.getGroup(playerId);
+
+            if (group.getOwner().equals(playerId)) {
+                Player newOwner = null;
+                for (UUID memberId : group.getMembers()) {
+                    if (!memberId.equals(playerId)) {
+                        Player member = Bukkit.getPlayer(memberId);
+                        if (member != null && member.isOnline()) {
+                            newOwner = member;
+                            break;
+                        }
+                    }
+                }
+
+                if (newOwner != null) {
+                    UUID newOwnerId = newOwner.getUniqueId();
+
+                    plugin.getGroups().remove(playerId);
+                    plugin.getGroups().put(newOwnerId, group);
+
+                    for (UUID memberId : group.getMembers()) {
+                        plugin.getPlayerGroups().put(memberId, newOwnerId);
+                    }
+
+                    plugin.getDataManager().saveData();
+
+                    for (UUID memberId : group.getMembers()) {
+                        Player member = Bukkit.getPlayer(memberId);
+                        if (member != null && member.isOnline()) {
+                            member.sendMessage(Component.text("New group owner: ", NamedTextColor.YELLOW)
+                                    .append(Component.text(newOwner.getName(), NamedTextColor.GREEN)));
+                        }
+                    }
+                }
+            }
+        }
     }
 }

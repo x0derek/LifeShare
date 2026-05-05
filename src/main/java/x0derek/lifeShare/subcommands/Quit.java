@@ -40,6 +40,7 @@ public class Quit implements Subcommand {
             }
         }
 
+        plugin.getDataManager().saveData();
         player.sendMessage(Component.text("You left the LifeShare group!", NamedTextColor.GREEN));
     }
 }

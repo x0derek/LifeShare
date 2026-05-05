@@ -28,6 +28,11 @@ public class Invitation implements Subcommand {
             return;
         }
 
+        if (plugin.hasInviteCooldown(player.getUniqueId())) {
+            player.sendMessage(Component.text("Please wait 5 seconds before sending another invitation!", NamedTextColor.RED));
+            return;
+        }
+
         if (plugin.getInvitations().containsKey(secondPlayer.getUniqueId())) {
             player.sendMessage(Component.text("This player already has a pending invitation!", NamedTextColor.RED));
             return;
@@ -38,11 +43,7 @@ public class Invitation implements Subcommand {
             return;
         }
 
-        if (plugin.isInGroup(secondPlayer.getUniqueId())) {
-            player.sendMessage(Component.text("This player is already in a LifeShare group!", NamedTextColor.RED));
-            return;
-        }
-
+        plugin.setInviteCooldown(player.getUniqueId());
         plugin.getInvitations().put(secondPlayer.getUniqueId(), player.getUniqueId());
 
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
@@ -68,7 +69,5 @@ public class Invitation implements Subcommand {
                                 .clickEvent(ClickEvent.runCommand("/lifeshare deny"))
                                 .hoverEvent(HoverEvent.showText(Component.text("Click to deny!", NamedTextColor.RED))))
         );
-
-
     }
 }

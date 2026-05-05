@@ -54,13 +54,16 @@ public class Accept implements Subcommand {
 
         group.addMember(player.getUniqueId());
         plugin.getPlayerGroups().put(player.getUniqueId(), group.getOwner());
-
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-        inviter.playSound(inviter.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+        plugin.getDataManager().saveData();
 
         player.setHealth(inviter.getHealth());
         player.getInventory().setContents(inviter.getInventory().getContents());
         player.setFoodLevel(inviter.getFoodLevel());
+
+        plugin.getSyncManager().syncAllGroupData(inviter.getUniqueId());
+
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+        inviter.playSound(inviter.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
 
         inviter.sendMessage(
                 Component.text(player.getName(), NamedTextColor.YELLOW)

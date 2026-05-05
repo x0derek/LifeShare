@@ -19,6 +19,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class LifeShareCommand implements CommandExecutor, TabCompleter {
+
+    private final LifeShare plugin;
+
+    public LifeShareCommand(LifeShare plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         var players = Bukkit.getOnlinePlayers().stream()
@@ -26,19 +33,13 @@ public class LifeShareCommand implements CommandExecutor, TabCompleter {
                 .collect(Collectors.toList());
 
         if (args.length == 1) {
-            return List.of("invite",  "accept", "deny", "quit");
+            return List.of("invite", "accept", "deny", "quit");
         }
 
-        if (args.length == 2 && args[0].equals("invite")) {
+        if (args.length == 2 && args[0].equalsIgnoreCase("invite")) {
             return players;
         }
         return List.of();
-    }
-
-    private final LifeShare plugin;
-
-    public LifeShareCommand(LifeShare plugin) {
-        this.plugin = plugin;
     }
 
     @Override
@@ -49,7 +50,7 @@ public class LifeShareCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 0) {
-            player.sendMessage(Component.text("Usage: /lifeshare <invite|accept|deny>", NamedTextColor.RED));
+            player.sendMessage(Component.text("Usage: /lifeshare <invite|accept|deny|quit>", NamedTextColor.RED));
             return true;
         }
 
@@ -82,7 +83,7 @@ public class LifeShareCommand implements CommandExecutor, TabCompleter {
                 break;
 
             default:
-                player.sendMessage(Component.text("Unknown subcommand! Use: invite, accept, deny", NamedTextColor.RED));
+                player.sendMessage(Component.text("Unknown subcommand! Use: invite, accept, deny, quit", NamedTextColor.RED));
                 break;
         }
 
