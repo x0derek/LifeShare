@@ -1,11 +1,15 @@
 name: LifeShare
-version: 1.5
+version: 1.2
 main: x0derek.lifeShare.LifeShare
 authors:
   - x0derek
-api-version: 1.20
+api-version: "1.20"
 commands:
   lifeshare:
     description: Main LifeShare command
-    usage: /<command> <invite|accept|deny|quit|options>
+    usage: /<command> <invite|accept|deny|quit|options|admin>
     aliases: [ls]
+permissions:
+  lifeshare.admin:
+    description: Allows admin commands for LifeShare
+    default: op
