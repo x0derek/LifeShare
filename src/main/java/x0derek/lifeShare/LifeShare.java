@@ -1,5 +1,6 @@
 package x0derek.lifeShare;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -16,7 +17,6 @@ public class LifeShare extends JavaPlugin {
         getCommand("lifeshare").setExecutor(new LifeShareCommand(this));
         getCommand("lifeshare").setTabCompleter(new LifeShareCommand(this));
         getServer().getPluginManager().registerEvents(new LifeShareListener(this), this);
-        getLogger().info("LifeShare enabled!");
     }
 
     @Override
