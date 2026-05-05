@@ -23,7 +23,7 @@ public class DataManager {
             try {
                 dataFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().warning("Cannot create data.yml: " + e.getMessage());
+                plugin.getLogger().warning("Nie można utworzyć data.yml: " + e.getMessage());
             }
         }
         dataConfig = YamlConfiguration.loadConfiguration(dataFile);
@@ -39,6 +39,11 @@ public class DataManager {
                     group.addMember(member);
                     plugin.getPlayerGroups().put(member, owner);
                 }
+
+                group.setShareHealth(dataConfig.getBoolean("groups." + ownerStr + ".shareHealth", true));
+                group.setShareHunger(dataConfig.getBoolean("groups." + ownerStr + ".shareHunger", true));
+                group.setShareInventory(dataConfig.getBoolean("groups." + ownerStr + ".shareInventory", true));
+
                 plugin.getGroups().put(owner, group);
             }
         }
@@ -49,17 +54,23 @@ public class DataManager {
 
         for (Map.Entry<UUID, LifeShareGroup> entry : plugin.getGroups().entrySet()) {
             String owner = entry.getKey().toString();
+            LifeShareGroup group = entry.getValue();
+
             List<String> members = new ArrayList<>();
-            for (UUID member : entry.getValue().getMembers()) {
+            for (UUID member : group.getMembers()) {
                 members.add(member.toString());
             }
+
             dataConfig.set("groups." + owner + ".members", members);
+            dataConfig.set("groups." + owner + ".shareHealth", group.isShareHealth());
+            dataConfig.set("groups." + owner + ".shareHunger", group.isShareHunger());
+            dataConfig.set("groups." + owner + ".shareInventory", group.isShareInventory());
         }
 
         try {
             dataConfig.save(dataFile);
         } catch (IOException e) {
-            plugin.getLogger().warning("Cannot save data.yml: " + e.getMessage());
+            plugin.getLogger().warning("Nie można zapisać data.yml: " + e.getMessage());
         }
     }
 }

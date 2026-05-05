@@ -56,9 +56,17 @@ public class Accept implements Subcommand {
         plugin.getPlayerGroups().put(player.getUniqueId(), group.getOwner());
         plugin.getDataManager().saveData();
 
-        player.setHealth(inviter.getHealth());
-        player.getInventory().setContents(inviter.getInventory().getContents());
-        player.setFoodLevel(inviter.getFoodLevel());
+        if (group.isShareHealth()) {
+            player.setHealth(inviter.getHealth());
+        }
+        if (group.isShareInventory()) {
+            player.getInventory().setContents(inviter.getInventory().getContents());
+            player.getInventory().setArmorContents(inviter.getInventory().getArmorContents());
+        }
+        if (group.isShareHunger()) {
+            player.setFoodLevel(inviter.getFoodLevel());
+            player.setSaturation(20);
+        }
 
         plugin.getSyncManager().syncAllGroupData(inviter.getUniqueId());
 

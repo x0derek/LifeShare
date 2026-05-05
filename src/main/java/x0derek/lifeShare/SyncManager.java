@@ -13,13 +13,12 @@ public class SyncManager {
         this.plugin = plugin;
     }
 
-    public void syncGroupHealth(UUID sourcePlayerId, double newHealth, boolean isDamage) {
+    public void syncGroupHealth(UUID sourcePlayerId, double newHealth) {
         LifeShareGroup group = plugin.getGroup(sourcePlayerId);
         if (group == null) return;
+        if (!group.isShareHealth()) return;
 
-        Set<UUID> members = group.getMembers();
-
-        for (UUID memberId : members) {
+        for (UUID memberId : group.getMembers()) {
             if (memberId.equals(sourcePlayerId)) continue;
             if (plugin.getSyncing().contains(memberId)) continue;
 
@@ -45,6 +44,7 @@ public class SyncManager {
     public void syncGroupFood(UUID sourcePlayerId, int foodLevel) {
         LifeShareGroup group = plugin.getGroup(sourcePlayerId);
         if (group == null) return;
+        if (!group.isShareHunger()) return;
 
         for (UUID memberId : group.getMembers()) {
             if (memberId.equals(sourcePlayerId)) continue;
@@ -63,6 +63,7 @@ public class SyncManager {
     public void syncGroupInventory(UUID sourcePlayerId) {
         LifeShareGroup group = plugin.getGroup(sourcePlayerId);
         if (group == null) return;
+        if (!group.isShareInventory()) return;
 
         Player source = Bukkit.getPlayer(sourcePlayerId);
         if (source == null) return;
@@ -87,7 +88,7 @@ public class SyncManager {
         if (player == null) return;
         if (!plugin.isInGroup(playerId)) return;
 
-        syncGroupHealth(playerId, player.getHealth(), false);
+        syncGroupHealth(playerId, player.getHealth());
         syncGroupFood(playerId, player.getFoodLevel());
         syncGroupInventory(playerId);
     }

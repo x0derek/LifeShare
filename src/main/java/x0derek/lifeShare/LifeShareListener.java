@@ -36,14 +36,19 @@ public class LifeShareListener implements org.bukkit.event.Listener {
                 if (!owner.getUniqueId().equals(playerId)) {
                     plugin.getSyncing().add(playerId);
 
-                    player.setHealth(owner.getHealth());
-                    player.getInventory().setContents(owner.getInventory().getContents());
-                    player.getInventory().setArmorContents(owner.getInventory().getArmorContents());
-                    player.setFoodLevel(owner.getFoodLevel());
-                    player.setSaturation(20);
+                    if (group.isShareHealth()) {
+                        player.setHealth(owner.getHealth());
+                    }
+                    if (group.isShareInventory()) {
+                        player.getInventory().setContents(owner.getInventory().getContents());
+                        player.getInventory().setArmorContents(owner.getInventory().getArmorContents());
+                    }
+                    if (group.isShareHunger()) {
+                        player.setFoodLevel(owner.getFoodLevel());
+                        player.setSaturation(20);
+                    }
 
                     plugin.getSyncing().remove(playerId);
-
                     player.sendMessage(Component.text("Your data has been synchronized with the group!", NamedTextColor.GREEN));
                 } else {
                     Player anyMember = null;
@@ -60,15 +65,20 @@ public class LifeShareListener implements org.bukkit.event.Listener {
                     if (anyMember != null) {
                         plugin.getSyncing().add(playerId);
 
-                        player.setHealth(anyMember.getHealth());
-                        player.getInventory().setContents(anyMember.getInventory().getContents());
-                        player.getInventory().setArmorContents(anyMember.getInventory().getArmorContents());
-                        player.setFoodLevel(anyMember.getFoodLevel());
-                        player.setSaturation(20);
+                        if (group.isShareHealth()) {
+                            player.setHealth(anyMember.getHealth());
+                        }
+                        if (group.isShareInventory()) {
+                            player.getInventory().setContents(anyMember.getInventory().getContents());
+                            player.getInventory().setArmorContents(anyMember.getInventory().getArmorContents());
+                        }
+                        if (group.isShareHunger()) {
+                            player.setFoodLevel(anyMember.getFoodLevel());
+                            player.setSaturation(20);
+                        }
 
                         plugin.getSyncing().remove(playerId);
-
-                        player.sendMessage(Component.text("You are the owner, but your data has been synchronized with the group!", NamedTextColor.GREEN));
+                        player.sendMessage(Component.text("Your data has been synchronized with the group!", NamedTextColor.GREEN));
                     }
                 }
             }
@@ -84,7 +94,7 @@ public class LifeShareListener implements org.bukkit.event.Listener {
         double newHealth = player.getHealth() - event.getFinalDamage();
         if (newHealth < 0) newHealth = 0;
 
-        plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), newHealth, true);
+        plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), newHealth);
     }
 
     @EventHandler
@@ -96,7 +106,7 @@ public class LifeShareListener implements org.bukkit.event.Listener {
         double newHealth = player.getHealth() + event.getAmount();
         if (newHealth > player.getMaxHealth()) newHealth = player.getMaxHealth();
 
-        plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), newHealth, true);
+        plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), newHealth);
     }
 
     @EventHandler
@@ -125,7 +135,7 @@ public class LifeShareListener implements org.bukkit.event.Listener {
         if (plugin.getSyncing().contains(player.getUniqueId())) return;
 
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), player.getHealth(), false);
+            plugin.getSyncManager().syncGroupHealth(player.getUniqueId(), player.getHealth());
             plugin.getSyncManager().syncGroupFood(player.getUniqueId(), player.getFoodLevel());
             plugin.getSyncManager().syncGroupInventory(player.getUniqueId());
         });
@@ -169,7 +179,7 @@ public class LifeShareListener implements org.bukkit.event.Listener {
 
                     for (UUID memberId : group.getMembers()) {
                         Player member = Bukkit.getPlayer(memberId);
-                        if (member != null && member.isOnline()) {
+                        if (member != null && member.isOnline() && !member.getUniqueId().equals(playerId)) {
                             member.sendMessage(Component.text("New group owner: ", NamedTextColor.YELLOW)
                                     .append(Component.text(newOwner.getName(), NamedTextColor.GREEN)));
                         }
