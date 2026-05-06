@@ -65,7 +65,7 @@ public class Accept implements Subcommand {
         }
         if (group.isShareHunger()) {
             player.setFoodLevel(inviter.getFoodLevel());
-            player.setSaturation(inviter.getSaturation());
+            player.setSaturation(20);
         }
 
         plugin.getSyncManager().syncAllGroupData(inviter.getUniqueId());

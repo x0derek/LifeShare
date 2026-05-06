@@ -1,6 +1,5 @@
 package x0derek.lifeShare;
 
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
@@ -19,7 +18,6 @@ public class DataManager {
 
     public void loadData() {
         dataFile = new File(plugin.getDataFolder(), "data.yml");
-
         if (!dataFile.exists()) {
             dataFile.getParentFile().mkdirs();
             try {
@@ -28,48 +26,18 @@ public class DataManager {
                 plugin.getLogger().warning("Nie można utworzyć data.yml: " + e.getMessage());
             }
         }
-
         dataConfig = YamlConfiguration.loadConfiguration(dataFile);
 
-        if (!dataConfig.contains("groups")) {
-            return;
-        }
-
-        if (!dataConfig.isConfigurationSection("groups")) {
-            plugin.getLogger().warning("Nieprawidłowa sekcja 'groups' w data.yml - resetowanie danych grup.");
-            dataConfig.set("groups", null);
-            try {
-                dataConfig.save(dataFile);
-            } catch (IOException e) {
-                plugin.getLogger().warning("Nie można zapisać data.yml po naprawie: " + e.getMessage());
-            }
-            return;
-        }
-
-        ConfigurationSection groupsSection = dataConfig.getConfigurationSection("groups");
-        if (groupsSection == null) {
-            return;
-        }
-
-        for (String ownerStr : groupsSection.getKeys(false)) {
-            try {
-                if (ownerStr.equals("default")) {
-                    plugin.getLogger().warning("Pomijanie sekcji 'default' - usuwanie...");
-                    groupsSection.set(ownerStr, null);
-                    continue;
-                }
-
+        if (dataConfig.contains("groups")) {
+            for (String ownerStr : dataConfig.getConfigurationSection("groups").getKeys(false)) {
                 UUID owner = UUID.fromString(ownerStr);
                 LifeShareGroup group = new LifeShareGroup(owner);
 
                 List<String> members = dataConfig.getStringList("groups." + ownerStr + ".members");
                 for (String memberStr : members) {
-                    if (memberStr.equals("default")) continue;
-                    try {
-                        UUID member = UUID.fromString(memberStr);
-                        group.addMember(member);
-                        plugin.getPlayerGroups().put(member, owner);
-                    } catch (IllegalArgumentException ignored) {}
+                    UUID member = UUID.fromString(memberStr);
+                    group.addMember(member);
+                    plugin.getPlayerGroups().put(member, owner);
                 }
 
                 group.setShareHealth(dataConfig.getBoolean("groups." + ownerStr + ".shareHealth", true));
@@ -77,15 +45,7 @@ public class DataManager {
                 group.setShareInventory(dataConfig.getBoolean("groups." + ownerStr + ".shareInventory", true));
 
                 plugin.getGroups().put(owner, group);
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Pomijanie nieprawidłowego UUID: " + ownerStr);
             }
-        }
-
-        try {
-            dataConfig.save(dataFile);
-        } catch (IOException e) {
-            plugin.getLogger().warning("Nie można zapisać data.yml: " + e.getMessage());
         }
     }
 

@@ -1,4 +1,4 @@
-package x0derek.lifeShare;
+package x0derek.lifeShare.subcommands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -6,6 +6,9 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import x0derek.lifeShare.LifeShare;
+import x0derek.lifeShare.LifeShareGroup;
+import x0derek.lifeShare.Subcommand;
 
 public class Options implements Subcommand {
 
@@ -24,15 +27,8 @@ public class Options implements Subcommand {
 
         LifeShareGroup group = plugin.getGroup(player.getUniqueId());
 
-        boolean ownerCanChange = plugin.getConfig().getBoolean("owner-can-change-options", true);
-
-        if (!group.getOwner().equals(player.getUniqueId()) && !player.hasPermission("lifeshare.admin")) {
+        if (!group.getOwner().equals(player.getUniqueId())) {
             player.sendMessage(Component.text("Only the group owner can change options!", NamedTextColor.RED));
-            return;
-        }
-
-        if (group.getOwner().equals(player.getUniqueId()) && !ownerCanChange && !player.hasPermission("lifeshare.admin")) {
-            player.sendMessage(Component.text("Owner option changes are disabled by an admin!", NamedTextColor.RED));
             return;
         }
 
@@ -97,58 +93,32 @@ public class Options implements Subcommand {
     }
 
     private void sendOptionsMenu(Player player, LifeShareGroup group) {
-        boolean ownerCanChange = plugin.getConfig().getBoolean("owner-can-change-options", true);
-
         player.sendMessage(Component.text("===== LifeShare Options =====", NamedTextColor.GOLD));
-
-        if (!group.getOwner().equals(player.getUniqueId())) {
-            player.sendMessage(Component.text("Only the owner can change options!", NamedTextColor.RED));
-        } else if (!ownerCanChange && !player.hasPermission("lifeshare.admin")) {
-            player.sendMessage(Component.text("Owner changes are disabled by admin!", NamedTextColor.RED));
-        }
 
         Component healthOption = Component.text("Health: ", NamedTextColor.GRAY)
                 .append(Component.text(group.isShareHealth() ? "✔ ENABLED" : "✘ DISABLED",
-                        group.isShareHealth() ? NamedTextColor.GREEN : NamedTextColor.RED));
-
-        if (canChangeOptions(player, group)) {
-            healthOption = healthOption.append(Component.text(" [CLICK]", NamedTextColor.YELLOW)
-                    .clickEvent(ClickEvent.runCommand("/lifeshare options health"))
-                    .hoverEvent(HoverEvent.showText(Component.text("Toggle health sharing", NamedTextColor.GREEN))));
-        }
+                        group.isShareHealth() ? NamedTextColor.GREEN : NamedTextColor.RED))
+                .append(Component.text(" [CLICK]", NamedTextColor.YELLOW)
+                        .clickEvent(ClickEvent.runCommand("/lifeshare options health"))
+                        .hoverEvent(HoverEvent.showText(Component.text("Toggle health sharing", NamedTextColor.GREEN))));
 
         Component hungerOption = Component.text("Hunger: ", NamedTextColor.GRAY)
                 .append(Component.text(group.isShareHunger() ? "✔ ENABLED" : "✘ DISABLED",
-                        group.isShareHunger() ? NamedTextColor.GREEN : NamedTextColor.RED));
-
-        if (canChangeOptions(player, group)) {
-            hungerOption = hungerOption.append(Component.text(" [CLICK]", NamedTextColor.YELLOW)
-                    .clickEvent(ClickEvent.runCommand("/lifeshare options hunger"))
-                    .hoverEvent(HoverEvent.showText(Component.text("Toggle hunger sharing", NamedTextColor.GREEN))));
-        }
+                        group.isShareHunger() ? NamedTextColor.GREEN : NamedTextColor.RED))
+                .append(Component.text(" [CLICK]", NamedTextColor.YELLOW)
+                        .clickEvent(ClickEvent.runCommand("/lifeshare options hunger"))
+                        .hoverEvent(HoverEvent.showText(Component.text("Toggle hunger sharing", NamedTextColor.GREEN))));
 
         Component inventoryOption = Component.text("Inventory: ", NamedTextColor.GRAY)
                 .append(Component.text(group.isShareInventory() ? "✔ ENABLED" : "✘ DISABLED",
-                        group.isShareInventory() ? NamedTextColor.GREEN : NamedTextColor.RED));
-
-        if (canChangeOptions(player, group)) {
-            inventoryOption = inventoryOption.append(Component.text(" [CLICK]", NamedTextColor.YELLOW)
-                    .clickEvent(ClickEvent.runCommand("/lifeshare options inventory"))
-                    .hoverEvent(HoverEvent.showText(Component.text("Toggle inventory sharing", NamedTextColor.GREEN))));
-        }
+                        group.isShareInventory() ? NamedTextColor.GREEN : NamedTextColor.RED))
+                .append(Component.text(" [CLICK]", NamedTextColor.YELLOW)
+                        .clickEvent(ClickEvent.runCommand("/lifeshare options inventory"))
+                        .hoverEvent(HoverEvent.showText(Component.text("Toggle inventory sharing", NamedTextColor.GREEN))));
 
         player.sendMessage(healthOption);
         player.sendMessage(hungerOption);
         player.sendMessage(inventoryOption);
         player.sendMessage(Component.text("===========================", NamedTextColor.GOLD));
-    }
-
-    private boolean canChangeOptions(Player player, LifeShareGroup group) {
-        boolean ownerCanChange = plugin.getConfig().getBoolean("owner-can-change-options", true);
-
-        if (player.hasPermission("lifeshare.admin")) return true;
-        if (group.getOwner().equals(player.getUniqueId()) && ownerCanChange) return true;
-
-        return false;
     }
 }

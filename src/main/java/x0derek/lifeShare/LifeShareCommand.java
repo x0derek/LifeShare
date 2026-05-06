@@ -7,6 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import x0derek.lifeShare.subcommands.Options;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +31,7 @@ public class LifeShareCommand implements CommandExecutor, TabCompleter {
                 .collect(Collectors.toList());
 
         if (args.length == 1) {
-            return List.of("invite", "accept", "deny", "quit", "options", "admin");
+            return List.of("invite", "accept", "deny", "quit", "options");
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("invite")) {
@@ -39,14 +40,6 @@ public class LifeShareCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 2 && args[0].equalsIgnoreCase("options")) {
             return List.of("health", "hunger", "inventory");
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
-            return List.of("setownerperms", "reload");
-        }
-
-        if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("setownerperms")) {
-            return List.of("true", "false");
         }
 
         return List.of();
@@ -60,7 +53,7 @@ public class LifeShareCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 0) {
-            player.sendMessage(Component.text("Usage: /lifeshare <invite|accept|deny|quit|options|admin>", NamedTextColor.RED));
+            player.sendMessage(Component.text("Usage: /lifeshare <invite|accept|deny|quit|options>", NamedTextColor.RED));
             return true;
         }
 
@@ -96,12 +89,8 @@ public class LifeShareCommand implements CommandExecutor, TabCompleter {
                 new Options(plugin).execute(player, null, args);
                 break;
 
-            case "admin":
-                new Admin(plugin).execute(player, null, args);
-                break;
-
             default:
-                player.sendMessage(Component.text("Unknown subcommand! Use: invite, accept, deny, quit, options, admin", NamedTextColor.RED));
+                player.sendMessage(Component.text("Unknown subcommand! Use: invite, accept, deny, quit, options", NamedTextColor.RED));
                 break;
         }
 
